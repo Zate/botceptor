@@ -28,7 +28,7 @@ Down under Your Access Token, click Create my access token which will give the a
 
 It will generate an Access Token and an Access Token Secret.  Place those in .secrets.yaml as `accesskey:` and  `accesssecret:`
 
-#### **SECURE THIS FILE**.  It will allow someone to access your twitter account via the API.
+#### **SECURE THIS FILE**.  *It will allow someone to access your twitter account via the API.*
 
 ### Running the app
 By default the app is setup to run over the last 20 followers and output if they are a bot or not.  You will need to adjust some comments to make it work on all your followers and to make it take action.
@@ -45,7 +45,7 @@ In it's default form, it classifies anyone with a score over 0.02 as a bot.  You
 
 If you are ready, simple run the program by:
 
-> `go build && ./botceptor` on linux/mac and `go build && ./botceptor.exe` on Windows.
+`go build && ./botceptor` on linux/mac and `go build && ./botceptor.exe` on Windows.
 
 > This is still very much a WIP, so much of this might not work.  YMMV.  Not responsible if you nuke all your twitter followers.
 
