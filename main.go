@@ -299,7 +299,7 @@ func doParams() (string, string, string, string, map[string]string) {
 }
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds) //| log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
 	last200()
 }
