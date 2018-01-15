@@ -2,12 +2,9 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"net/http/httputil"
 	"os"
 	"runtime"
 	"sort"
@@ -33,16 +30,6 @@ func CheckErr(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-//Botometer is a struct for the object we post to their API
-type Botometer struct {
-	Timeline []twitter.Tweet `json:"timeline"`
-	Mentions []twitter.Tweet `json:"mentions"`
-	User     struct {
-		ID         int64  `json:"id"`
-		ScreenName string `json:"screen_name"`
-	} `json:"user"`
 }
 
 type apikeys struct {
@@ -79,7 +66,6 @@ func last200() {
 	accesskey = k.AccessKey
 	consumersecret = k.ConsumerSecret
 	accesssecret = k.AccessSecret
-	//f, err := os.OpenFile("followers.csv", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	f, err := os.OpenFile("followers.t", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	CheckErr(err)
 	defer f.Close()
@@ -91,7 +77,6 @@ func last200() {
 	httpClient := config.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 
-	//w := csv.NewWriter(f)
 	w := bufio.NewWriter(f)
 
 	var cursor int64
@@ -99,21 +84,19 @@ func last200() {
 	cursor = -1
 
 	for cursor != 0 {
-		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 1})
+		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 200})
 		CheckErr(err)
-		cursor = 0
-		//cursor = followers.NextCursor
+		cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
+		//cursor = followers.NextCursor // If you comment out cursor = 0 and uncomment this, it will iterate through ALL followers in batches as sized above (default 200)
 		for k := range followers.Users {
 			allfollowers = append(allfollowers, followers.Users[k])
 			// 1 	1:0.7 3:0.1 9:0.4
 			// 0	2:0.3 4:0.9 7:0.5
 			// 0	2:0.7 5:0.3
 			// ... This is the format for libsvm for hector.
-			// Data Normalization - I think i need to normalize each favtor/attribute against all the other of the same type.
-
 		}
-		//log.Printf("cursor:%v", cursor)
-		//time.Sleep(time.Duration(60) * time.Second) // Need this to not hit twitter rate limits.
+		// Need this to not hit twitter rate limits.  If you are using NextCursor above, them have this uncommented also so that you will only make one request for a batch of followers per minute.  This will be right on with the API rate limit of 15 in 15 mins.
+		//time.Sleep(time.Duration(60) * time.Second)
 	}
 
 	var fc []int
@@ -207,34 +190,12 @@ func last200() {
 
 }
 
-// APIPost sends a POST to the API
-func APIPost(uri string, bodyContent *bytes.Reader) (b []byte) {
-	var k apikeys
-	var botomkey string
-	k.getAPIKeys(".secrets.yaml")
-	botomkey = k.BotomKey
-	c := &http.Client{}
-	r, err := http.NewRequest("POST", "https://osome-botometer.p.mashape.com"+uri, bodyContent)
-	CheckErr(err)
-	r.Header.Add("X-Mashape-Key", botomkey)
-	r.Header.Add("Content-Type", "application/json")
-	r.Header.Add("Accept", "application/json")
-	requestDump, err := httputil.DumpRequest(r, false)
-	CheckErr(err)
-	log.Println(string(requestDump))
-	resp, err := c.Do(r)
-	CheckErr(err)
-	defer resp.Body.Close()
-	b, err = ioutil.ReadAll(resp.Body)
-	CheckErr(err)
-	return b
-}
-
 // Classifier does classifying things.
 type Classifier struct {
 	classifier algo.Classifier
 }
 
+// tests a follower with the rf model.
 func (c *Classifier) testFollower(data string) float64 {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	tks := strings.Split(data, "\t")
@@ -264,6 +225,7 @@ func (c *Classifier) testFollower(data string) float64 {
 	return prediction
 }
 
+// Created this to allow me to control the params as by default, hector likes to take them from the command line.  I hard code them here and use doParams() instead of the inbuilt hector function.
 func doParams() (string, string, string, string, map[string]string) {
 	params := make(map[string]string)
 	trainPath := "followers_training.t"
@@ -288,7 +250,7 @@ func doParams() (string, string, string, string, map[string]string) {
 	factors := "10"
 	steps := 1
 	var global int64 = -1
-	method := "rf"
+	method := "rf" // I found this to be most accurate, feel free to change if you've run data through other models with hectorcv
 	cv := 7
 	k := "3"
 	radius := "1.0"
@@ -301,10 +263,6 @@ func doParams() (string, string, string, string, map[string]string) {
 	dim := "1"
 	port := "8080"
 
-	//runtime.GOMAXPROCS(*core)
-	// fmt.Println(*train_path)
-	// fmt.Println(*test_path)
-	// fmt.Println(*method)
 	params["port"] = port
 	params["verbose"] = strconv.FormatInt(int64(verbose), 10)
 	params["learning-rate"] = learningRate
@@ -337,7 +295,6 @@ func doParams() (string, string, string, string, map[string]string) {
 	params["dt-sample-ratio"] = dtSampleRatio
 	params["dim"] = dim
 
-	//fmt.Println(params)
 	return trainPath, testPath, predPath, method, params
 }
 
