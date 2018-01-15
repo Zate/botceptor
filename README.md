@@ -1,5 +1,5 @@
 # botceptor
-#### Tool to review and remove bot accounts from your twitter account.
+### Tool to review and remove bot accounts from your twitter account.
 
 Clone the repo
 
@@ -11,7 +11,7 @@ Rename skel.secrets.yaml to .secrets.yaml
 
 `mv skel.secrets.yaml .secrets.yaml`
 
-#### Set up your twitter app for auth
+### Set up your twitter app for auth
 
 Make sure you are logged into twitter.com with the account you want to work with.
 
@@ -27,7 +27,7 @@ Down under Your Access Token, click Create my access token which will give the a
 
 It will generate an Access Token and an Access Token Secret.  Place those in .secrets.yaml as `accesskey:` and  `accesssecret:`
 
-##**SECURE THIS FILE**.  It will allow someone to access your twitter account via the API.
+## **SECURE THIS FILE**.  It will allow someone to access your twitter account via the API.
 
 By default the app is setup to run over the last 20 followers and output if they are a bot or not.  You will need to adjust some comments to make it work on all your followers and to make it take action.
 
@@ -48,7 +48,7 @@ If you are ready, simple run the program by
 This is still very much a WIP, so much of this might not work.  YMMV.  Not responsible if you nuke all your twitter followers.
 
 
-#### Creating your Machine Learning Model
+### Creating your Machine Learning Model
 
 `go get github.com/xlvector/hector`
 
