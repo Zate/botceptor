@@ -3,17 +3,16 @@
 
 ## Getting Started
 
-Clone the repo
+### Clone the repo
 ```
 git clone git@github.com:Zate/botceptor.git
 ```
 Rename skel.secrets.yaml to .secrets.yaml
-
-`cd botceptor`
-
-`mv skel.secrets.yaml .secrets.yaml`
-
-## Set up your twitter app for auth
+```
+cd botceptor
+mv skel.secrets.yaml .secrets.yaml
+```
+### Set up your twitter app for auth
 
 Make sure you are logged into twitter.com with the account you want to work with.
 
@@ -51,13 +50,11 @@ This is still very much a WIP, so much of this might not work.  YMMV.  Not respo
 
 
 ## Creating your Machine Learning Model
-
-`go get github.com/xlvector/hector`
-
-`go install github.com/xlvector/hector/hectorcv`
-
-`hectorcv --method [Method] --train [Data Path] --cv 10`
-
+```
+go get github.com/xlvector/hector
+go install github.com/xlvector/hector/hectorcv
+hectorcv --method [Method] --train [Data Path] --cv 10
+```
 
 Method can be :
 
@@ -76,17 +73,24 @@ Method can be :
 * `knn` : k-nearest neighbor classification
 
 hector-run.go will help you train one algorithm on train dataset and test it on test dataset, you can run it by following steps:
-
-`cd src`
-
-`go build hector-run.go`
-
-`./hector-run --method [Method] --train [Data Path] --test [Data Path]`
-
+```
+cd src
+go build hector-run.go
+./hector-run --method [Method] --train [Data Path] --test [Data Path]
+```
 Above methods will direct train algorithm on train dataset and then test on test dataset. If you want to train algorithm and get the model file, you can run it by following steps:
-
-`./hector-run --method [Method] --action train --train [Data Path] --model [Model Path]`
-
+```
+./hector-run --method [Method] --action train --train [Data Path] --model [Model Path]
+```
 Then, you can use model file to test any test dataset:
+```
+./hector-run --method [Method] --action test --test [Data Path] --model [Model Path]
+```
+## License
 
-`./hector-run --method [Method] --action test --test [Data Path] --model [Model Path]`
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Acknowledgments
+
+* Thankyou to the creator of [hector](https://github.com/xlvector/hector) which I have used for the machine learning code
+* Thankyou to the create or [go-twitter](https://github.com/dghubble/go-twitter) which allows me to connect to twitter.
