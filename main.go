@@ -12,6 +12,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 
 	"gopkg.in/yaml.v2"
 
@@ -26,6 +27,8 @@ func newTrue() *bool {
 	b := true
 	return &b
 }
+
+var log = logrus.New()
 
 // CheckErr to handle errors
 func CheckErr(err error) {
@@ -166,6 +169,7 @@ func last200() {
 			CheckErr(err)
 			if resp.StatusCode == 200 {
 				log.Printf("%v was blocked", user.ScreenName)
+				log.
 			}
 			user, resp, err = client.Block.Destroy(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
 			CheckErr(err)
@@ -300,7 +304,24 @@ func doParams() (string, string, string, string, map[string]string) {
 	return trainPath, testPath, predPath, method, params
 }
 
+func init() {
+	formatter := new(prefixed.TextFormatter)
+	formatter.SetColorScheme(&prefixed.ColorScheme{
+		InfoLevelStyle:  "green",
+		WarnLevelStyle:  "yellow",
+		ErrorLevelStyle: "red",
+		FatalLevelStyle: "red",
+		PanicLevelStyle: "red",
+		DebugLevelStyle: "blue",
+		PrefixStyle:     "cyan",
+		TimestampStyle:  "black+h",
+	})
+	log.Formatter = formatter
+	log.Level = logrus.DebugLevel
+}
+
 func main() {
+	
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds) //| log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
 	for {
