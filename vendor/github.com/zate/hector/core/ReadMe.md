@@ -1,1 +1,0 @@
-Define base structure such as Feature, Sample, DataSet

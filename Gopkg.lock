@@ -29,6 +29,7 @@
   branch = "master"
   name = "github.com/xlvector/hector"
   packages = [
+    ".",
     "algo",
     "ann",
     "core",
@@ -51,16 +52,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/zate/hector"
-  packages = [
-    ".",
-    "algo",
-    "core"
-  ]
-  revision = "7414764756a912dbc59daa537271af3f0a6016dc"
-
-[[projects]]
-  branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
   revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
@@ -74,6 +65,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4cfa2eafc6e1cf54b8147a6ac056f190a18460b95f97dddc07093f1ae3780a55"
+  inputs-digest = "97bf3d688e7e0fa8d1373efbeadf9a2af4bd725f7d2c95587ad1d01b9df3bfc8"
   solver-name = "gps-cdcl"
   solver-version = 1
