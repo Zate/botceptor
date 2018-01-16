@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/xlvector/hector/core"
+	"github.com/zate/hector/core"
 )
 
 type RandomForestParams struct {

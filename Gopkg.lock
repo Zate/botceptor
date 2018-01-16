@@ -57,7 +57,7 @@
     "algo",
     "core"
   ]
-  revision = "9874eef0a51a8226a4a0b14f813e1451330074b4"
+  revision = "7414764756a912dbc59daa537271af3f0a6016dc"
 
 [[projects]]
   branch = "master"
