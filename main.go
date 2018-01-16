@@ -4,12 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"runtime"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"gopkg.in/yaml.v2"
 
@@ -84,7 +86,7 @@ func last200() {
 	cursor = -1
 
 	for cursor != 0 {
-		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 20})
+		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 200})
 		CheckErr(err)
 		cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
 		//cursor = followers.NextCursor // If you comment out cursor = 0 and uncomment this, it will iterate through ALL followers in batches as sized above (default 200)
@@ -96,7 +98,7 @@ func last200() {
 			// ... This is the format for libsvm for hector.
 		}
 		// Need this to not hit twitter rate limits.  If you are using NextCursor above, them have this uncommented also so that you will only make one request for a batch of followers per minute.  This will be right on with the API rate limit of 15 in 15 mins.
-		//time.Sleep(time.Duration(60) * time.Second)
+		//log.Println(cursor)
 	}
 
 	var fc []int
@@ -160,22 +162,22 @@ func last200() {
 		res := c.testFollower(fdata)
 		if res > 0.02 {
 			log.Printf("%v is a bot : %v", allfollowers[x].ScreenName, res)
-			// user, resp, err := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
-			// CheckErr(err)
-			// if resp.StatusCode == 200 {
-			// 	log.Printf("%v was blocked", user.ScreenName)
-			// }
-			// user, resp, err = client.Block.Destroy(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
-			// CheckErr(err)
-			// if resp.StatusCode == 200 {
-			// 	log.Printf("%v was unblocked", user.ScreenName)
-			// }
+			user, resp, err := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
+			CheckErr(err)
+			if resp.StatusCode == 200 {
+				log.Printf("%v was blocked", user.ScreenName)
+			}
+			user, resp, err = client.Block.Destroy(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
+			CheckErr(err)
+			if resp.StatusCode == 200 {
+				log.Printf("%v was unblocked", user.ScreenName)
+			}
 		} else {
 			log.Printf("%v not bot : %v", allfollowers[x].ScreenName, res)
 		}
 	}
 	w.Flush()
-
+	log.Println("Run done")
 	// 1 - ScreenName - unique - dont put these in training
 	// 2 - user id - unique -  dont put these in training
 	// 3 - number of accounts they follow ? need to index this ?
@@ -301,5 +303,10 @@ func doParams() (string, string, string, string, map[string]string) {
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds) //| log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
-	last200()
+	for {
+		last200()
+		log.Println("Pausing for 60 seconds.")
+		time.Sleep(time.Duration(60) * time.Second)
+
+	}
 }

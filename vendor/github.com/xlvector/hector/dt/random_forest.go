@@ -3,7 +3,7 @@ package dt
 import (
 	"bufio"
 	"fmt"
-	//"log"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -56,7 +56,7 @@ func (self *RandomForest) LoadModel(path string) {
 			text = append(text, line)
 		}
 	}
-	//log.Println("rf tree count :", len(self.trees))
+	log.Println("rf tree count :", len(self.trees))
 }
 
 func (dt *RandomForest) Init(params map[string]string) {
