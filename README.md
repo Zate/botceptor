@@ -95,3 +95,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 * Thankyou to the creator of [hector](https://github.com/xlvector/hector) which I have used for the machine learning code
 * Thankyou to the create or [go-twitter](https://github.com/dghubble/go-twitter) which allows me to connect to twitter.
+* Thankyou to the muse of this whole project, [mauvehed](https://twitter.com/mauvehed) for being, a jerk. 
