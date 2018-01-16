@@ -81,10 +81,10 @@ func last200() {
 	client := twitter.NewClient(httpClient)
 
 	var cursor int64
-	var allfollowers []twitter.User
 	cursor = -1
 
 	for cursor != 0 {
+		var allfollowers []twitter.User
 		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 200})
 		CheckErr(err)
 		//cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
@@ -172,13 +172,12 @@ func do200(allfollowers []twitter.User, client *twitter.Client) {
 		res := c.testFollower(fdata)
 		if res > 0.02 {
 			log.Printf("%v is a bot : %v", allfollowers[x].ScreenName, res)
-			user, resp, err := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
-			CheckErr(err)
+			user, resp, _ := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
+			log.Println(resp)
 			if resp.StatusCode == 200 {
 				log.Printf("%v was blocked", user.ScreenName)
 			}
-			user, resp, err = client.Block.Destroy(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
-			CheckErr(err)
+			user, resp, _ = client.Block.Destroy(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
 			if resp.StatusCode == 200 {
 				log.Printf("%v was unblocked", user.ScreenName)
 			}
@@ -328,7 +327,7 @@ func doParams() (string, string, string, string, map[string]string) {
 
 func main() {
 
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds) //| log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
 	// for {
 	last200()
