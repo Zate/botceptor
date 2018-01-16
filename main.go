@@ -72,9 +72,6 @@ func last200() {
 	accesskey = k.AccessKey
 	consumersecret = k.ConsumerSecret
 	accesssecret = k.AccessSecret
-	f, err := os.OpenFile("followers.t", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	CheckErr(err)
-	defer f.Close()
 
 	// Pass in your consumer key (API Key) and your Consumer Secret (API Secret)
 	config := oauth1.NewConfig(consumerkey, consumersecret)
@@ -83,8 +80,6 @@ func last200() {
 	httpClient := config.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 
-	w := bufio.NewWriter(f)
-
 	var cursor int64
 	var allfollowers []twitter.User
 	cursor = -1
@@ -92,8 +87,8 @@ func last200() {
 	for cursor != 0 {
 		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 200})
 		CheckErr(err)
-		cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
-		//cursor = followers.NextCursor // If you comment out cursor = 0 and uncomment this, it will iterate through ALL followers in batches as sized above (default 200)
+		//cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
+		cursor = followers.NextCursor // If you comment out cursor = 0 and uncomment this, it will iterate through ALL followers in batches as sized above (default 200)
 		for k := range followers.Users {
 			allfollowers = append(allfollowers, followers.Users[k])
 			// 1 	1:0.7 3:0.1 9:0.4
@@ -101,14 +96,25 @@ func last200() {
 			// 0	2:0.7 5:0.3
 			// ... This is the format for libsvm for hector.
 		}
+		do200(allfollowers, client)
 		// Need this to not hit twitter rate limits.  If you are using NextCursor above, them have this uncommented also so that you will only make one request for a batch of followers per minute.  This will be right on with the API rate limit of 15 in 15 mins.
 		//log.Println(cursor)
+		time.Sleep(time.Duration(60) * time.Second)
 	}
+}
+
+func do200(allfollowers []twitter.User, client *twitter.Client) {
 
 	var fc []int
 	var listed []int
 	var tweets []int
 	var favc []int
+
+	f, err := os.OpenFile("followers.t", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	CheckErr(err)
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
 
 	for x := range allfollowers {
 		fc = append(fc, allfollowers[x].FollowersCount)
@@ -324,10 +330,10 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds) //| log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
-	for {
-		last200()
-		log.Println("Pausing for 60 seconds.")
-		time.Sleep(time.Duration(60) * time.Second)
+	// for {
+	last200()
+	// 	log.Println("Pausing for 60 seconds.")
+	// 	time.Sleep(time.Duration(60) * time.Second)
 
-	}
+	// }
 }
