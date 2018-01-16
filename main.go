@@ -18,9 +18,9 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/dghubble/oauth1"
-	"github.com/xlvector/hector"
-	"github.com/xlvector/hector/algo"
-	"github.com/xlvector/hector/core"
+	"github.com/zate/hector"
+	"github.com/zate/hector/algo"
+	"github.com/zate/hector/core"
 	"github.com/zate/go-twitter/twitter"
 )
 
