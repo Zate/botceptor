@@ -170,7 +170,7 @@ func do200(allfollowers []twitter.User, client *twitter.Client) {
 		c.classifier.LoadModel(model)
 
 		res := c.testFollower(fdata)
-		if res > 0.02 {
+		if res > 0.02 && allfollowers[x].Verified != true && allfollowers[x].Following != true {
 			log.Printf("%v is a bot : %v", allfollowers[x].ScreenName, res)
 			user, resp, _ := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
 			log.Println(resp)
@@ -182,7 +182,7 @@ func do200(allfollowers []twitter.User, client *twitter.Client) {
 				log.Printf("%v was unblocked", user.ScreenName)
 			}
 		} else {
-			log.Printf("%v not bot : %v", allfollowers[x].ScreenName, res)
+			log.Printf("%v not bot : %v Verified: %v Following: %v", allfollowers[x].ScreenName, res, allfollowers[x].Verified, allfollowers[x].Following)
 		}
 	}
 	w.Flush()
