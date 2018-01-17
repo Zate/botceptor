@@ -1,0 +1,8 @@
+version: '3'
+services:
+  botceptor:
+    build:
+      context: .
+    image: "zate75/botceptor"
+    container_name: botceptor
+    command: /botceptor

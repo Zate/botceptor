@@ -173,7 +173,7 @@ func do200(allfollowers []twitter.User, client *twitter.Client) {
 		if res > 0.02 && allfollowers[x].Verified != true && allfollowers[x].Following != true {
 			log.Printf("%v is a bot : %v", allfollowers[x].ScreenName, res)
 			user, resp, _ := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
-			log.Println(resp)
+			//log.Println(resp)
 			if resp.StatusCode == 200 {
 				log.Printf("%v was blocked", user.ScreenName)
 			}
@@ -329,10 +329,9 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
-	// for {
-	last200()
-	// 	log.Println("Pausing for 60 seconds.")
-	// 	time.Sleep(time.Duration(60) * time.Second)
-
-	// }
+	for {
+		last200()
+		log.Println("Pausing for 60 seconds.")
+		time.Sleep(time.Duration(60) * time.Second)
+	}
 }
