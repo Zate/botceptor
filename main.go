@@ -2,9 +2,12 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
+	"math/big"
 	"os"
 	"runtime"
 	"sort"
@@ -85,8 +88,9 @@ func last200() {
 
 	for cursor != 0 {
 		var allfollowers []twitter.User
-		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 200})
+		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 100})
 		CheckErr(err)
+		//log.Println(resp)
 		//cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
 		cursor = followers.NextCursor // If you comment out cursor = 0 and uncomment this, it will iterate through ALL followers in batches as sized above (default 200)
 		for k := range followers.Users {
@@ -96,10 +100,17 @@ func last200() {
 			// 0	2:0.7 5:0.3
 			// ... This is the format for libsvm for hector.
 		}
-		do200(allfollowers, client)
+		if GetTrainingData == false {
+			do200(allfollowers, client)
+		} else {
+			log200(allfollowers, client)
+		}
+
 		// Need this to not hit twitter rate limits.  If you are using NextCursor above, them have this uncommented also so that you will only make one request for a batch of followers per minute.  This will be right on with the API rate limit of 15 in 15 mins.
 		//log.Println(cursor)
-		time.Sleep(time.Duration(60) * time.Second)
+		if cursor != 0 {
+			time.Sleep(time.Duration(60) * time.Second)
+		}
 	}
 }
 
@@ -184,6 +195,134 @@ func do200(allfollowers []twitter.User, client *twitter.Client) {
 		} else {
 			log.Printf("%v not bot : %v Verified: %v Following: %v", allfollowers[x].ScreenName, res, allfollowers[x].Verified, allfollowers[x].Following)
 		}
+	}
+	w.Flush()
+	log.Println("Run done")
+	// 1 - ScreenName - unique - dont put these in training
+	// 2 - user id - unique -  dont put these in training
+	// 3 - number of accounts they follow ? need to index this ?
+	// 4 - number of items they have favorited indexed to number of accounts they follow
+	// 5 - number of accounts that follow them indexed to number of accounts they follow
+	// 6 - number of times they are on a list indexed to number of accounts they follow
+	// 7 - number of tweets indexed to number of accounts they follow
+	// 8 - default profile? - binary
+	// 9 - default profile image? - binary
+	// 10 - am I following them? - binary
+	// 11 - are they a verfied account? - binary
+
+}
+
+func log200(allfollowers []twitter.User, client *twitter.Client) {
+
+	var fc []int
+	var listed []int
+	var tweets []int
+	var favc []int
+	var langc []int
+	var desc []int
+
+	f, err := os.OpenFile("followers.t", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	CheckErr(err)
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+
+	for x := range allfollowers {
+		fc = append(fc, allfollowers[x].FollowersCount)
+		listed = append(listed, allfollowers[x].ListedCount)
+		tweets = append(tweets, allfollowers[x].StatusesCount)
+		favc = append(favc, allfollowers[x].FavouritesCount)
+		langc = append(langc, int(new(big.Int).SetBytes([]byte(allfollowers[x].Lang)).Uint64()))
+		desc = append(desc, int(new(big.Int).SetBytes([]byte(allfollowers[x].Description)).Uint64()))
+	}
+	fcNumbers := sort.IntSlice(fc)
+	sort.Sort(fcNumbers)
+	fcMax := fcNumbers[len(fcNumbers)-1]
+	listedNumbers := sort.IntSlice(listed)
+	sort.Sort(listedNumbers)
+	listedMax := listedNumbers[len(listedNumbers)-1]
+	tweetsNumbers := sort.IntSlice(tweets)
+	sort.Sort(tweetsNumbers)
+	tweetsMax := tweetsNumbers[len(tweetsNumbers)-1]
+	favcNumbers := sort.IntSlice(favc)
+	sort.Sort(favcNumbers)
+	favcMax := favcNumbers[len(favcNumbers)-1]
+	langcNumbers := sort.IntSlice(langc)
+	sort.Sort(langcNumbers)
+	langcMax := langcNumbers[len(langcNumbers)-1]
+	descNumbers := sort.IntSlice(desc)
+	sort.Sort(descNumbers)
+	descMax := descNumbers[len(descNumbers)-1]
+
+	for x := range allfollowers {
+		idxfavs := math.Log10(float64(allfollowers[x].FavouritesCount)) / math.Log10(float64(favcMax))
+		idxfollowers := math.Log10(float64(allfollowers[x].FollowersCount)) / math.Log10(float64(fcMax))
+		idxlisted := math.Log10(float64(allfollowers[x].ListedCount)) / math.Log10(float64(listedMax))
+		idxtweets := math.Log10(float64(allfollowers[x].StatusesCount)) / math.Log10(float64(tweetsMax))
+		idxprofile := (b2i(allfollowers[x].DefaultProfile) + 1) / 2
+		idxprofileimage := (b2i(allfollowers[x].DefaultProfileImage) + 1) / 2
+		idxfollowing := (b2i(allfollowers[x].Following) + 1) / 2
+		idxverified := (b2i(allfollowers[x].Verified) + 1) / 2
+		lang := new(big.Int).SetBytes([]byte(allfollowers[x].Lang)).Uint64()
+		idxlang := math.Log10(float64(lang)) / math.Log10(float64(langcMax))
+		des := new(big.Int).SetBytes([]byte(allfollowers[x].Description)).Uint64()
+		log.Println(des)
+		idxdesc := math.Log10(float64(des+1)) / math.Log10(float64(descMax+1))
+
+		// fdata := fmt.Sprintf("0	1:%v 2:%v 3:%v 4:%v 5:%v 6:%v 7:%v 8:%v",
+		// 	idxfavs,
+		// 	idxfollowers,
+		// 	idxlisted,
+		// 	idxtweets,
+		// 	idxprofile,
+		// 	idxprofileimage,
+		// 	idxfollowing,
+		// 	idxverified)
+		// fmt.Fprintf(w, "0	ScreenName:%v 1:%v 2:%v 3:%v 4:%v 5:%v 6:%v 7:%v 8:%v\n",
+		// 	allfollowers[x].ScreenName,
+		// 	idxfavs,
+		// 	idxfollowers,
+		// 	idxlisted,
+		// 	idxtweets,
+		// 	idxprofile,
+		// 	idxprofileimage,
+		// 	idxfollowing,
+		// 	idxverified,
+		// 	idxlang)
+		fmt.Printf("0	ScreenName:%v 1:%v 2:%v 3:%v 4:%v 5:%v 6:%v 7:%v 8:%v 9:%v 10:%v\n",
+			allfollowers[x].ScreenName,
+			idxfavs,
+			idxfollowers,
+			idxlisted,
+			idxtweets,
+			idxprofile,
+			idxprofileimage,
+			idxfollowing,
+			idxverified,
+			idxlang,
+			idxdesc)
+		// _, _, _, method, params := doParams()
+		// model, _ := params["model"]
+		// c := &Classifier{
+		// 	classifier: hector.GetClassifier(method),
+		// }
+		// c.classifier.LoadModel(model)
+
+		// res := c.testFollower(fdata)
+		// if res > 0.02 && allfollowers[x].Verified != true && allfollowers[x].Following != true {
+		// 	log.Printf("%v is a bot : %v", allfollowers[x].ScreenName, res)
+		// 	user, resp, _ := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
+		// 	//log.Println(resp)
+		// 	if resp.StatusCode == 200 {
+		// 		log.Printf("%v was blocked", user.ScreenName)
+		// 	}
+		// 	user, resp, _ = client.Block.Destroy(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
+		// 	if resp.StatusCode == 200 {
+		// 		log.Printf("%v was unblocked", user.ScreenName)
+		// 	}
+		// } else {
+		// 	log.Printf("%v not bot : %v Verified: %v Following: %v", allfollowers[x].ScreenName, res, allfollowers[x].Verified, allfollowers[x].Following)
+		// }
 	}
 	w.Flush()
 	log.Println("Run done")
@@ -309,29 +448,25 @@ func doParams() (string, string, string, string, map[string]string) {
 	return trainPath, testPath, predPath, method, params
 }
 
-// func init() {
-// 	formatter := new(prefixed.TextFormatter)
-// 	formatter.SetColorScheme(&prefixed.ColorScheme{
-// 		InfoLevelStyle:  "green",
-// 		WarnLevelStyle:  "yellow",
-// 		ErrorLevelStyle: "red",
-// 		FatalLevelStyle: "red",
-// 		PanicLevelStyle: "red",
-// 		DebugLevelStyle: "blue",
-// 		PrefixStyle:     "cyan",
-// 		TimestampStyle:  "black+h",
-// 	})
-// 	log.Formatter = formatter
-// 	log.Level = logrus.DebugLevel
-// }
+// GetTrainingData is a global command line flag to swap to just gathering training data.
+var GetTrainingData bool
+
+func init() {
+	flag.BoolVar(&GetTrainingData, "gtd", true, "Dump followers to a file to be used to generate new training data.")
+	flag.Parse()
+}
 
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
-	for {
+	if GetTrainingData == false {
+		for {
+			last200()
+			log.Println("Pausing for 60 seconds.")
+			time.Sleep(time.Duration(60) * time.Second)
+		}
+	} else {
 		last200()
-		log.Println("Pausing for 60 seconds.")
-		time.Sleep(time.Duration(60) * time.Second)
 	}
 }
