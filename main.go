@@ -82,9 +82,10 @@ func last200() {
 
 	var cursor int64
 	cursor = -1
+	var allfollowers []twitter.User
 
 	for cursor != 0 {
-		var allfollowers []twitter.User
+		//var allfollowers []twitter.User
 		followers, _, err := client.Followers.List(&twitter.FollowerListParams{Cursor: cursor, Count: 200})
 		CheckErr(err)
 		//cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
@@ -96,11 +97,12 @@ func last200() {
 			// 0	2:0.7 5:0.3
 			// ... This is the format for libsvm for hector.
 		}
-		do200(allfollowers, client)
+		//do200(allfollowers, client)
 		// Need this to not hit twitter rate limits.  If you are using NextCursor above, them have this uncommented also so that you will only make one request for a batch of followers per minute.  This will be right on with the API rate limit of 15 in 15 mins.
-		//log.Println(cursor)
+		log.Println(cursor)
 		time.Sleep(time.Duration(60) * time.Second)
 	}
+	do200(allfollowers, client)
 }
 
 func do200(allfollowers []twitter.User, client *twitter.Client) {
@@ -173,7 +175,7 @@ func do200(allfollowers []twitter.User, client *twitter.Client) {
 		if res > 0.02 && allfollowers[x].Verified != true && allfollowers[x].Following != true {
 			log.Printf("%v is a bot : %v", allfollowers[x].ScreenName, res)
 			user, resp, _ := client.Block.Create(&twitter.BlockUserParams{ScreenName: allfollowers[x].ScreenName})
-			//log.Println(resp)
+			log.Println(resp)
 			if resp.StatusCode == 200 {
 				log.Printf("%v was blocked", user.ScreenName)
 			}
@@ -329,9 +331,9 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 	log.Println("Botceptor Coming Online ....")
-	for {
+//	for {
 		last200()
-		log.Println("Pausing for 60 seconds.")
-		time.Sleep(time.Duration(60) * time.Second)
-	}
+//		log.Println("Pausing for 60 seconds.")
+//		time.Sleep(time.Duration(60) * time.Second)
+//	}
 }
