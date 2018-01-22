@@ -101,6 +101,7 @@ func last200() {
 		//cursor = 0 // if cursor is 0, then it will only run through 1 lot of followers from twitter of the size you specify above (default 200)
 		cursor = followers.NextCursor // If you comment out cursor = 0 and uncomment this, it will iterate through ALL followers in batches as sized above (default 200)
 		log.Println(ScreenName)
+		followers.
 		for k := range followers.Users {
 
 			allfollowers = append(allfollowers, followers.Users[k])
