@@ -28,20 +28,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/xlvector/hector"
-  packages = [
-    ".",
-    "algo",
-    "ann",
-    "core",
-    "dt",
-    "eval",
-    "fm",
-    "gp",
-    "lr",
-    "sa",
-    "svm",
-    "util"
-  ]
+  packages = [".","algo","ann","core","dt","eval","fm","gp","lr","sa","svm","util"]
   revision = "a9da960a44abbb611961348619b46098f16c6203"
 
 [[projects]]
@@ -54,7 +41,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
+  revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
 
 [[projects]]
   branch = "v2"
