@@ -1,4 +1,4 @@
-# botceptor
+# botceptor Tool Invent
 ### Tool to review and remove bot accounts from your twitter account.
 
 ## Getting Started
